@@ -23,11 +23,18 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    const message = data.choices?.[0]?.message?.content || 'No response from AI';
 
-    res.status(200).json({ result: message });
+    // 👇 New: Handle OpenAI errors properly
+    if (!response.ok) {
+      console.error('OpenAI Error:', data);
+      return res.status(500).json({ error: data });
+    }
+
+    const message = data.choices?.[0]?.message?.content;
+
+    return res.status(200).json({ result: message });
   } catch (err) {
-    console.error('OpenAI API Error:', err);
-    res.status(500).json({ error: 'Something went wrong' });
+    console.error('Server Error:', err);
+    return res.status(500).json({ error: 'Something went wrong with the server' });
   }
 }
